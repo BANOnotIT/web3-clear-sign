@@ -1,31 +1,38 @@
-import { useState } from 'react'
-import { VStack } from '@chakra-ui/react'
+import { SyntheticEvent, useState } from 'react'
+import { Button, Input, VStack } from '@chakra-ui/react'
 import Web3 from 'web3'
 import { useWeb3React } from '@web3-react/core'
 import ConnectButton from './connectButton'
 import TextArea from './textArea'
-import SignButton from './signButton'
-import Signature from './Signature'
 
-//const {account} = useWeb3React()
 function Form() {
-  const [MessageState, setMessageState] = useState('')
-  const [SignatureState, setSignatureState] = useState('')
-  function writeMessage(e) {
-    setMessageState(e.target.value)
+  const { active, library, account } = useWeb3React<Web3>()
+  const web3 = library
+
+  const [message, setMessage] = useState('')
+  const [signature, setSignature] = useState('')
+
+  function writeMessage(e: SyntheticEvent<HTMLInputElement>) {
+    setMessage(e.currentTarget.value)
   }
+
   function signMessage() {
-    var web3 = new Web3('http://localhost:5173/')
-    //setSignatureState(web3.eth.sign(MessageState, account));
-    console.log(MessageState)
-    //console.log(SignatureState)
+    if (web3 && account) {
+      web3.eth.personal
+        // @ts-ignore
+        .sign(message, account)
+        .then((signature) => setSignature(signature))
+    }
   }
+
   return (
     <VStack>
       <ConnectButton />
       <TextArea onChange={writeMessage} />
-      <SignButton onClick={signMessage} />
-      <Signature value={SignatureState}></Signature>
+      <Button onClick={signMessage} disabled={!active}>
+        Sign
+      </Button>
+      <Input value={signature} disabled={!active} />
     </VStack>
   )
 }
